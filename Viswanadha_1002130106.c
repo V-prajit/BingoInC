@@ -12,6 +12,8 @@ int CheckIfNumberIsInCard(int BingoCard[5][5], int RandomlyPickedNumber);
 int CheckIfColumns(int BingoCard[5][5]);
 int CheckIfRows(int BingoCard[5][5]);
 int CheckIfDiagonal(int BingoCard[5][5]);
+void PrintCardToFile(int BingoCard[5][5], FILE *IFH);
+
 int main(void)
 {
     int BingoCard[5][5];
@@ -25,6 +27,16 @@ int main(void)
     int RowFinished = CheckIfRows(BingoCard);
     int DiagonalFinished = CheckIfDiagonal(BingoCard);
     char Response;
+
+    FILE *IFH;
+    IFH = fopen("BINGO.card", "w+");
+    if (IFH == NULL) 
+    {
+        fprintf(stderr, "Failed to open file for writing.\n");
+        return 0;
+    }
+    PrintCardToFile(BingoCard, IFH);
+
     while (!ColumnFinished & !RowFinished & !DiagonalFinished)
     {
         PrintBingoCard(BingoCard);
@@ -32,9 +44,11 @@ int main(void)
         PrintSelectedNumber(RandomlyPickedNumber);
         printf("Do you have it? (Y/N)");
         scanf(" %c", &Response);
-        if(Response == 'Y' || Response == 'y'){
+        if(Response == 'Y' || Response == 'y')
+        {
             Verify = CheckIfNumberIsInCard(BingoCard, RandomlyPickedNumber);
-            if(Verify == 0){
+            if(Verify == 0)
+            {
                 printf("The value is not on your BINGO card - are you trying to cheat??\n");
             }
         }
@@ -47,6 +61,12 @@ int main(void)
         DiagonalFinished = CheckIfDiagonal(BingoCard);
     }
 
+    PrintCardToFile(BingoCard, IFH);
+    for (int i = 0; i<numPicked; i++)
+    {
+        fprintf(IFH, "%d ", PreviouslyPickedNumbers[i]);
+    }
+    fclose(IFH);
     return 0;
 }
 
@@ -61,7 +81,8 @@ void FillBingoCard(int BingoCard[5][5])
         for (row = 0; row<5; row++)
         {
             int check = 0;
-            while (!check){
+            while (!check)
+            {
                 check = 1;
                 result = (rand()%(hi_num - low_num + 1)) + low_num;
                 for (int k =0; k < row; k++)
@@ -86,7 +107,8 @@ void PrintBingoCard(int BingoCard[5][5])
         for (int i = 0; i < 5; i++) {
             for (int j = 0; j < 5; j++) 
             {   
-                if (BingoCard[i][j] == 0){
+                if (BingoCard[i][j] == 0)
+                {
                     printf("|    X   ");
                 }
                 else
@@ -104,11 +126,14 @@ int PickNumber(int PreviouslyPickedNumbers[75], int *numPicked){
     int lower_bound = 1, higher_bound = 75;
     int unique = 0;
     int NumberPicked;
-    while (!unique){
+    while (!unique)
+    {
         unique = 1;
         NumberPicked = rand()%(higher_bound-lower_bound + 1) + lower_bound;
-        for (int i = 0; i < *numPicked; i++){
-            if (PreviouslyPickedNumbers[i] == NumberPicked){
+        for (int i = 0; i < *numPicked; i++)
+        {
+            if (PreviouslyPickedNumbers[i] == NumberPicked)
+            {
                 unique = 0;
                 break;
             }
@@ -119,7 +144,8 @@ int PickNumber(int PreviouslyPickedNumbers[75], int *numPicked){
     return NumberPicked;
 }
 
-void PrintSelectedNumber(int RandomlyPickedNumber){
+void PrintSelectedNumber(int RandomlyPickedNumber)
+{
     printf("The next number is ");
     if (RandomlyPickedNumber < 16)
     {
@@ -143,7 +169,8 @@ void PrintSelectedNumber(int RandomlyPickedNumber){
     }
 }
 
-int CheckIfColumns(int BingoCard[5][5]){
+int CheckIfColumns(int BingoCard[5][5])
+{
     for (int i = 0; i<5; i++)
     {
         int counter = 0;
@@ -162,7 +189,8 @@ int CheckIfColumns(int BingoCard[5][5]){
     return 0;
 }
 
-int CheckIfRows(int BingoCard[5][5]){
+int CheckIfRows(int BingoCard[5][5])
+{
     for (int i = 0; i<5; i++)
     {
         int counter = 0;
@@ -175,13 +203,15 @@ int CheckIfRows(int BingoCard[5][5]){
         }
         if (counter == 5){
             printf("You Finished A Row - BINGO\n");
+
             return 1;
         }
     }
     return 0;
 }
 
-int CheckIfDiagonal(int BingoCard[5][5]){
+int CheckIfDiagonal(int BingoCard[5][5])
+{
     int counter = 0;
     int counter2 = 0;
     for (int i = 0; i<5; i++)
@@ -202,14 +232,39 @@ int CheckIfDiagonal(int BingoCard[5][5]){
     return 0;
 }
 
-int CheckIfNumberIsInCard(int BingoCard[5][5], int RandomlyPickedNumber){
+int CheckIfNumberIsInCard(int BingoCard[5][5], int RandomlyPickedNumber)
+{
     for (int i = 0; i<5; i++){
-        for (int j = 0; j<5; j++){
-            if (BingoCard[i][j] == RandomlyPickedNumber){
+        for (int j = 0; j<5; j++)
+        {
+            if (BingoCard[i][j] == RandomlyPickedNumber)
+            {
                 BingoCard[i][j] = 0;
                 return 1;
             }
         }
     }
     return 0;
+}
+
+void PrintCardToFile(int BingoCard[5][5], FILE *IFH)
+{
+    fprintf(IFH, "     B        I        N        G        O\n");
+    fprintf(IFH, "----------------------------------------------\n");
+        for (int i = 0; i < 5; i++) {
+            for (int j = 0; j < 5; j++) 
+            {   
+                if (BingoCard[i][j] == 0)
+                {
+                    fprintf(IFH, "|    X   ");
+                }
+                else
+                {
+                    fprintf(IFH, "|   %2d   ", BingoCard[i][j]);
+                }
+            }
+        fprintf(IFH, "|");
+        fprintf(IFH,"\n");
+        fprintf(IFH,"----------------------------------------------\n");
+    }
 }
